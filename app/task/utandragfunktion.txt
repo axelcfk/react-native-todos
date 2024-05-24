@@ -1,0 +1,598 @@
+import { StatusBar } from "expo-status-bar";
+import GlobalFont from "react-native-global-font";
+import { TaskContext } from "../TaskContext";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { useState, useEffect, useContext } from "react";
+import RNPickerSelect from "react-native-picker-select";
+import {
+  useFonts,
+  Manrope_400Regular,
+  Manrope_600SemiBold,
+} from "@expo-google-fonts/manrope";
+import {
+  Swipeable,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import { Link, useRouter, useNavigationState } from "expo-router";
+
+export default function Index() {
+  useEffect(() => {
+    GlobalFont.applyGlobal("Roboto-Light");
+  }, []);
+
+  const { tasks, addTask, deleteTask, completeTask } = useContext(TaskContext);
+
+  let [fontsLoaded] = useFonts({
+    Manrope_400Regular,
+    Manrope_600SemiBold,
+  });
+
+  ///Buttons för att välja mellan färdiga/ofärdiga tasks
+  const [allButton, setAllButton] = useState(true);
+  const [completedButton, setCompletedButton] = useState(false);
+  const [currentButton, setCurrentButton] = useState(false);
+  /////////////////////////////////////////////////////
+
+  const [addTaskButtonClicked, setAddTaskButtonClicked] = useState(false);
+  const [selectedValue, setSelectedValue] = useState("");
+  const [input, setInput] = useState("");
+  const [completed, setCompleted] = useState(false);
+
+  //Här sparas alla tasks
+  const [allTasks, setAllTasks] = useState(tasks);
+  ////////////////////////////////////////////////////////
+
+  useEffect(() => {
+    setAllTasks(tasks);
+  }, [tasks]);
+
+  function allButtonClicked() {
+    setAllButton(!allButton);
+    setCompletedButton(false);
+    setCurrentButton(false);
+  }
+  function completedButtonClicked() {
+    setCompletedButton(!completedButton);
+    setAllButton(false);
+    setCurrentButton(false);
+  }
+  function currentButtonClicked() {
+    setCurrentButton(!currentButton);
+    setAllButton(false);
+    setCompletedButton(false);
+  }
+
+  const getCurrentDate = () => {
+    const date = new Date();
+    return date.toLocaleDateString("sv-SE", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  function handleAddTaskButton() {
+    setAddTaskButtonClicked(!addTaskButtonClicked);
+  }
+
+  function handleAddTaskInput(text) {
+    setInput(text);
+  }
+
+  const handleAddTask = () => {
+    const newTask = {
+      id: allTasks.length + 1,
+      text: input,
+      completed: false,
+      description: "",
+    };
+
+    addTask(newTask);
+    setInput("");
+    setAddTaskButtonClicked(false);
+  };
+
+  const renderRightActions = (id) => {
+    return (
+      <TouchableOpacity
+        style={{ justifyContent: "center", alignItems: "center" }}
+        onPress={() => deleteTask(id)}
+      >
+        <View
+          style={{
+            height: 140,
+            width: 140,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.deleteButtonText}>
+            <Icon name="trash" size={28} color="#FF6663" />
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View
+          style={{
+            justifyContent: "flex-end",
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 20,
+          }}
+        >
+          <Icon name="user-circle" size={28} color="white" />
+          <Icon
+            style={{ marginLeft: 14 }}
+            name="bars"
+            size={28}
+            color="white"
+          />
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
+            marginTop: 20,
+          }}
+        >
+          <View>
+            <Text style={styles.heading1}>Your Daily Tasks</Text>
+            <Text style={{ color: "white", marginTop: 5, fontWeight: "600" }}>
+              {getCurrentDate()}
+            </Text>
+          </View>
+
+          <View style={styles.addtaskcontainer}>
+            <TouchableOpacity
+              onPress={handleAddTaskButton}
+              style={styles.addtaskwrap}
+            >
+              <Text style={styles.addtasktext}>Add</Text>
+              <Icon name="plus" size={16} color="black" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.buttonwrapper}>
+          {allButton ? (
+            <TouchableOpacity
+              onPress={allButtonClicked}
+              style={styles.buttoncontainer1}
+            >
+              <Text style={styles.button1}>All</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={allButtonClicked}
+              style={styles.buttoncontainer2}
+            >
+              <Text style={styles.button2}>All</Text>
+            </TouchableOpacity>
+          )}
+
+          {completedButton ? (
+            <TouchableOpacity
+              onPress={completedButtonClicked}
+              style={styles.buttoncontainer1}
+            >
+              <Text style={styles.button1}>Done</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={completedButtonClicked}
+              style={styles.buttoncontainer2}
+            >
+              <Text style={styles.button2}>Done</Text>
+            </TouchableOpacity>
+          )}
+          {currentButton ? (
+            <TouchableOpacity
+              onPress={currentButtonClicked}
+              style={styles.buttoncontainer1}
+            >
+              <Text style={styles.button1}>In progress</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={currentButtonClicked}
+              style={styles.buttoncontainer2}
+            >
+              <Text style={styles.button2}>In progress</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {addTaskButtonClicked && (
+          <View style={styles.addTaskWrapper}>
+            <View style={styles.selectwrap}>
+              <View style={styles.selectview}>
+                <Text style={styles.heading2}>Add a Task</Text>
+                <TextInput
+                  value={input}
+                  onChangeText={handleAddTaskInput}
+                  style={styles.textInput}
+                  placeholder="ADD A TASK"
+                />
+
+                <TouchableOpacity
+                  onPress={handleAddTask}
+                  style={styles.addtask}
+                >
+                  <Text style={styles.addtasktext}>Add Task</Text>
+                  <Icon name="plus" size={16} color="black" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+        <ScrollView>
+          {allTasks &&
+            allButton &&
+            allTasks.map((task, index) => (
+              <Swipeable
+                key={index}
+                renderRightActions={() => renderRightActions(task.id)}
+              >
+                <Link
+                  href={{
+                    pathname: `/task/${task.id}`,
+                    params: {
+                      text: task.text,
+                      completed: task.completed,
+                      description: "text",
+                    },
+                  }}
+                  asChild
+                >
+                  <TouchableOpacity
+                    style={task.completed ? styles.taskview2 : styles.taskview1}
+                  >
+                    <Text style={{ fontSize: 40, fontWeight: "600" }}>
+                      {task.text.toUpperCase()}
+                    </Text>
+                    {/* <Text style={{ fontSize: 10, fontWeight: "600" }}>
+                      {task.description}
+                    </Text> */}
+                    <Icon
+                      onPress={() => completeTask(task.id)}
+                      style={{ position: "absolute", top: 10, right: 10 }}
+                      name={task.completed ? "circle" : "circle-o"}
+                      size={40}
+                      color="#1B2021"
+                    ></Icon>
+                  </TouchableOpacity>
+                </Link>
+              </Swipeable>
+            ))}
+
+          {allTasks &&
+            completedButton &&
+            allTasks
+              .filter((task) => task.completed)
+              .map((task, index) => (
+                <Swipeable
+                  key={index}
+                  renderRightActions={() => renderRightActions(task.id)}
+                >
+                  <Link
+                    href={{
+                      pathname: `/task/${task.id}`,
+                      params: {
+                        text: task.text,
+                        completed: task.completed,
+                        description: task.description,
+                      },
+                    }}
+                    asChild
+                  >
+                    <TouchableOpacity style={styles.taskview2} key={index}>
+                      <Text style={{ fontSize: 40, fontWeight: "600" }}>
+                        {task.text.toUpperCase()}
+                      </Text>
+                      <Icon
+                        onPress={() => completeTask(task.id)}
+                        style={{ position: "absolute", top: 10, right: 10 }}
+                        name={task.completed ? "circle" : "circle-o"}
+                        size={40}
+                        color="#1B2021"
+                      ></Icon>
+                    </TouchableOpacity>
+                  </Link>
+                </Swipeable>
+              ))}
+
+          {allTasks &&
+            currentButton &&
+            allTasks
+              .filter((task) => !task.completed)
+              .map((task, index) => (
+                <Swipeable
+                  key={index}
+                  renderRightActions={() => renderRightActions(task.id)}
+                >
+                  <Link
+                    href={{
+                      pathname: `/task/${task.id}`,
+                      params: {
+                        text: task.text,
+                        completed: task.completed,
+                        description: task.description,
+                      },
+                    }}
+                    asChild
+                  >
+                    <TouchableOpacity style={styles.taskview1} key={index}>
+                      <Text style={{ fontSize: 40, fontWeight: "600" }}>
+                        {task.text.toUpperCase()}
+                      </Text>
+
+                      <Icon
+                        onPress={() => completeTask(task.id)}
+                        style={{ position: "absolute", top: 10, right: 10 }}
+                        name={task.completed ? "circle" : "circle-o"}
+                        size={40}
+                        color="#1B2021"
+                      ></Icon>
+                    </TouchableOpacity>
+                  </Link>
+                </Swipeable>
+              ))}
+
+          <StatusBar style="auto" />
+        </ScrollView>
+      </View>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    zIndex: 100,
+    position: "relative",
+    backgroundColor: "#1B2021",
+    padding: 20,
+    paddingTop: 60,
+    // marginHorizontal: 10,
+    width: "100%",
+  },
+
+  addTaskWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  taskview1: {
+    zIndex: 100,
+    backgroundColor: "#F8FA90",
+    marginVertical: 8,
+    height: 140,
+    borderRadius: 10,
+    padding: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    zIndex: 200,
+  },
+
+  taskview2: {
+    zIndex: 100,
+    backgroundColor: "#D2F898",
+    marginVertical: 8,
+    height: 140,
+    borderRadius: 10,
+    padding: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    zIndex: 200,
+  },
+  button1: {
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#1B2021",
+    fontWeight: "600",
+  },
+  button2: {
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    fontWeight: "600",
+  },
+  buttonwrapper: {
+    flexDirection: "row",
+    width: "100%",
+    marginBottom: 30,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  buttoncontainer1: {
+    height: 40,
+    width: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 50,
+    borderWidth: 1,
+    color: "#1B2021",
+    backgroundColor: "#D2F898",
+
+    // backgroundColor: "#3A0CA3",
+  },
+
+  buttoncontainer2: {
+    height: 40,
+    width: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: "white",
+    borderStyle: "solid",
+  },
+
+  heading2: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1B2021",
+    // backgroundColor: "blue",
+    width: "100%",
+    marginVertical: 20,
+  },
+
+  heading1: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "white",
+  },
+
+  addtaskcontainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 18,
+  },
+
+  textInput: {
+    height: 40,
+    width: "100%",
+
+    // backgroundColor: "#F4F4F8",
+    borderRadius: 5,
+    borderWidth: 1,
+    color: "#1B2021",
+    borderStyle: "solid",
+    paddingHorizontal: 10,
+    marginTop: 20,
+  },
+
+  addtaskwrap: {
+    flexDirection: "row",
+    marginBottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0.5,
+    height: 40,
+    width: 100,
+    borderRadius: 50,
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+  },
+  addtasktext: {
+    color: "#1B2021",
+    marginRight: 5,
+    fontWeight: "600",
+  },
+  selectview: {
+    position: "absolute",
+
+    zIndex: 1000,
+    backgroundColor: "#F4F4F8",
+    height: "100%",
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    borderRadius: 20,
+  },
+
+  selectwrap: {
+    zIndex: 1000,
+    backgroundColor: "#F4F4F8",
+
+    height: 400,
+    marginTop: -30,
+    position: "absolute",
+    backgroundColor: "#fff",
+    // backgroundColor: "red",
+    borderRadius: 20,
+    // borderWidth: 1,
+    // borderColor: "black",
+    // borderStyle: "solid",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    width: "100%",
+    zIndex: 1000,
+  },
+  addtask: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0.5,
+    height: 40,
+    marginTop: 20,
+    borderRadius: 50,
+    backgroundColor: "#E7E247",
+    paddingHorizontal: 10,
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 4,
+    color: "#1B2021",
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "purple",
+    borderRadius: 8,
+    color: "#1B2021",
+    paddingRight: 30,
+  },
+});
+
+
+
+
+ // function getTaskCardFontSize(index) {
+  //   const baseFontSize = 30;
+  //   return {
+  //     fontWeight: "600",
+  //     fontSize: baseFontSize - index * 1.5,
+  //   };
+  // }
+
+  // function getTaskCardStyle(index) {
+  //   const baseHeight = 160;
+  //   return {
+  //     backgroundColor: "#E0E2DB",
+  //     marginVertical: 8,
+  //     height: baseHeight - index * 20, // Decrease height based on index
+  //     borderRadius: 10,
+  //     // padding: 20,
+  //     alignItems: "center",
+  //     justifyContent: "center",
+  //     flexDirection: "row",
+  //     zIndex: 200,
+  //   };
+  // }
