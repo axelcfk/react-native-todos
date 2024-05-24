@@ -103,7 +103,7 @@ export default function TaskCard() {
         >
           <View>
             <Text style={styles.heading1}>{task.text.toUpperCase()}</Text>
-            {taskDetails.completed == "true" ? (
+            {taskDetails.completed == "true" || completedClicked ? (
               <Text style={{ color: "white", marginTop: 5, fontWeight: "600" }}>
                 Marked as completed
               </Text>
@@ -119,7 +119,9 @@ export default function TaskCard() {
               onPress={handleCompleteClick}
               style={styles.addtaskwrap}
             >
-              <Text style={styles.addtasktext}>Done</Text>
+              <Text style={styles.addtasktext}>
+                {!completedClicked ? "Done" : "Not Done"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

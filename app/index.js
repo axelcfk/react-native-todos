@@ -2,6 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import GlobalFont from "react-native-global-font";
 import { TaskContext } from "../TaskContext";
 import { RefreshControl } from "react-native";
+import { useRouter, useNavigation } from "expo-router";
 
 import {
   StyleSheet,
@@ -29,23 +30,28 @@ export default function Index() {
     GlobalFont.applyGlobal("Roboto-Light");
   }, []);
 
-  const { tasks, addTask, deleteTask, completeTask } = useContext(TaskContext);
+  const { comments, tasks, addTask, deleteTask, completeTask } =
+    useContext(TaskContext);
 
   let [fontsLoaded] = useFonts({
     Manrope_400Regular,
     Manrope_600SemiBold,
   });
 
+  const router = useRouter();
+  const navigation = useNavigation();
+
   const [allButton, setAllButton] = useState(true);
   const [completedButton, setCompletedButton] = useState(false);
   const [currentButton, setCurrentButton] = useState(false);
   const [addTaskButtonClicked, setAddTaskButtonClicked] = useState(false);
-  const [selectedValue, setSelectedValue] = useState("");
+  // const [selectedValue, setSelectedValue] = useState("");
   const [input, setInput] = useState("");
   const [completed, setCompleted] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const [allTasks, setAllTasks] = useState(tasks);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
     setAllTasks(tasks);
@@ -55,21 +61,21 @@ export default function Index() {
     setAllButton(true);
     setCompletedButton(false);
     setCurrentButton(false);
-    setAllTasks(tasks); // Show all tasks
+    setAllTasks(tasks); // visa alla tasks
   }
 
   function completedButtonClicked() {
     setCompletedButton(true);
     setAllButton(false);
     setCurrentButton(false);
-    setAllTasks(tasks.filter((task) => task.completed)); // Show only completed tasks
+    setAllTasks(tasks.filter((task) => task.completed)); // visa bara avslutade tasks om completebutton är klickad
   }
 
   function currentButtonClicked() {
     setCurrentButton(true);
     setAllButton(false);
     setCompletedButton(false);
-    setAllTasks(tasks.filter((task) => !task.completed)); // Show only in-progress tasks
+    setAllTasks(tasks.filter((task) => !task.completed)); // visa bara oavslutade tasks om currentbutton är klickad
   }
 
   const getCurrentDate = () => {
@@ -123,40 +129,45 @@ export default function Index() {
     </TouchableOpacity>
   );
 
-  const renderItem = ({ item }) => (
-    <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-      <Link
-        href={{
-          pathname: `/task/${item.id}`,
-          params: {
-            text: item.text,
-            completed: item.completed,
-            description: item.description,
-          },
-        }}
-        asChild
-      >
-        <TouchableOpacity
-          style={item.completed ? styles.taskview2 : styles.taskview1}
-          activeOpacity={0.8}
+  const renderItem = ({ item }) => {
+    const taskComments = comments[item.id] || [];
+    return (
+      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+        <Link
+          href={{
+            pathname: `/task/${item.id}`,
+            params: {
+              text: item.text,
+              completed: item.completed,
+              description: item.description,
+            },
+          }}
+          asChild
         >
-          <Text style={{ fontSize: 40, fontWeight: "600" }}>
-            {item.text.toUpperCase()}
-          </Text>
-          <Text style={{ fontSize: 10, fontWeight: "600" }}>
-            {item.description}
-          </Text>
-          <Icon
-            onPress={() => completeTask(item.id)}
-            style={{ position: "absolute", top: 10, right: 10 }}
-            name={item.completed ? "circle" : "circle-o"}
-            size={40}
-            color="#1B2021"
-          />
-        </TouchableOpacity>
-      </Link>
-    </Swipeable>
-  );
+          <TouchableOpacity
+            style={item.completed ? styles.taskview2 : styles.taskview1}
+            activeOpacity={0.8}
+          >
+            <View>
+              <Text style={{ fontSize: 32, fontWeight: "600" }}>
+                {item.text.toUpperCase()}
+              </Text>
+              <Text style={{ fontWeight: "600", marginTop: 10 }}>
+                {comments[item.id] ? comments[item.id].length : 0} Comments
+              </Text>
+            </View>
+            <Icon
+              onPress={() => completeTask(item.id)}
+              style={{ position: "absolute", top: 10, right: 10 }}
+              name={item.completed ? "circle" : "circle-o"}
+              size={40}
+              color="#1B2021"
+            />
+          </TouchableOpacity>
+        </Link>
+      </Swipeable>
+    );
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -177,7 +188,9 @@ export default function Index() {
             marginTop: 20,
           }}
         >
-          <Icon name="user-circle" size={28} color="#E0E2DB" />
+          <TouchableOpacity onPress={() => router.push("/signup/signupPage")}>
+            <Icon name="user-circle" size={28} color="#E0E2DB" />
+          </TouchableOpacity>
           <Icon
             style={{ marginLeft: 14 }}
             name="bars"
@@ -185,6 +198,12 @@ export default function Index() {
             color="#E0E2DB"
           />
         </View>
+        <TouchableOpacity
+          onPress={() => router.push("/calendar/calendarPage")}
+          style={{ position: "absolute", top: 80, left: 30 }}
+        >
+          <Icon name="calendar" size={28} color="#E0E2DB" style={styles.icon} />
+        </TouchableOpacity>
         <View
           style={{
             flexDirection: "row",
@@ -195,7 +214,7 @@ export default function Index() {
           }}
         >
           <View>
-            <Text style={styles.heading1}>YOUR DAILY TODOS</Text>
+            <Text style={styles.heading1}>Your Daily Todos</Text>
             <Text style={{ color: "#E0E2DB", marginTop: 5, fontWeight: "600" }}>
               {getCurrentDate()}
             </Text>
@@ -394,6 +413,9 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     paddingHorizontal: 10,
     marginTop: 20,
+    fontSize: 24,
+    justifyContent: "center",
+    alignItems: "center",
   },
   addtask: {
     width: "100%",
