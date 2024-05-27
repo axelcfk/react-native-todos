@@ -51,7 +51,7 @@ export default function CalendarPage() {
 
       <View style={styles.container}>
         <TouchableOpacity
-          onPress={() => router.push("/")}
+          onPress={() => router.back()}
           style={{
             position: "absolute",
             top: 80,

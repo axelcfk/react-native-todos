@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import GlobalFont from "react-native-global-font";
 import { TaskContext } from "../TaskContext";
-import { RefreshControl } from "react-native";
+import { Image, RefreshControl } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 
 import {
@@ -284,6 +284,12 @@ export default function Index() {
           <View style={styles.addTaskWrapper}>
             <View style={styles.selectwrap}>
               <View style={styles.selectview}>
+                <TouchableOpacity
+                  style={{ position: "absolute", top: 16, right: 16 }}
+                  onPress={handleAddTaskButton}
+                >
+                  <Icon name="close" size={28} color="black" />
+                </TouchableOpacity>
                 <Text style={styles.heading2}>Add a Task</Text>
                 <TextInput
                   value={input}
@@ -304,6 +310,11 @@ export default function Index() {
           </View>
         )}
 
+        {/* <Image
+          source={require("../assets/images/dalle.webp")}
+          style={{ height: 100, width: 100 }}
+        /> */}
+
         <FlatList
           data={allTasks}
           renderItem={renderItem}
@@ -320,6 +331,7 @@ export default function Index() {
             />
           }
         />
+
         <StatusBar style="auto" />
       </View>
     </GestureHandlerRootView>
